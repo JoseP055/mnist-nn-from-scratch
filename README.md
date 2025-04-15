@@ -1,4 +1,4 @@
-# 🧠 MNIST Neural Network from Scratch
+# MNIST Neural Network from Scratch
 
 A fully custom-built neural network in **pure Python + NumPy** trained to recognize handwritten digits from the **MNIST dataset** — without using any deep learning frameworks like TensorFlow or PyTorch.
 
@@ -6,7 +6,7 @@ A fully custom-built neural network in **pure Python + NumPy** trained to recogn
 
 ---
 
-## 🚀 What’s Inside?
+## What’s Inside?
 
 - ✅ Feedforward neural network (1 hidden layer)
 - ✅ Custom backpropagation and gradient descent
