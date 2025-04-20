@@ -21,4 +21,4 @@ A fully custom-built neural network in **pure Python + NumPy** trained to recogn
 Make sure you have the following libraries installed:
 
 ```bash
-pip install numpy matplotlib
+pip install numpy matplotlib pickle
