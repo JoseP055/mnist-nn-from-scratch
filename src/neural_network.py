@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from proccesMNIST import get_images
+from src.proccesMNIST import get_images
+
+
 
 # MNIST Path
 mnist_path = './data/MNIST/'
@@ -20,6 +22,19 @@ y_val = y_train_num[50000:].reshape(10000, 1)
 # Test data: 10,000 numbers and labels
 x_test = x_test_num.copy().reshape(10000, -1).astype(np.float32) / 255
 y_test = y_test_num.copy().reshape(10000, 1)
+
+def load_data():
+
+    mnist_path = './data/MNIST/'
+    x_train_num, y_train_num, x_test_num, y_test_num = get_images(mnist_path)
+    x_train = x_train_num[:50000].reshape(50000, -1).astype(np.float32) / 255
+    y_train = y_train_num[:50000].reshape(50000, 1)
+    x_val = x_train_num[50000:].reshape(10000, -1).astype(np.float32) / 255
+    y_val = y_train_num[50000:].reshape(10000, 1)
+    x_test = x_test_num.copy().reshape(10000, -1).astype(np.float32) / 255
+    y_test = y_test_num.copy().reshape(10000, 1)
+
+    return x_train, y_train, x_val, y_val, x_test, y_test, x_test_num, y_test_num
 
 def create_minibatches(mb_size, x, y, shuffle=True):
     """
@@ -65,7 +80,7 @@ def relu(x):
     return np.maximum(0, x)
 
 #Scores
-def scores(x, paremeters, activation_fnc):
+def scores(x, parameters, activation_fnc):
     """
     x has (#pixels, num samples) shape
     """
@@ -74,9 +89,6 @@ def scores(x, paremeters, activation_fnc):
     z2 = parameters["W2"] @ a1 + parameters["b2"]
 
     return z2, z1, a1
-
-scores, z1, a1 = scores(x_train[:64].T, parameters, relu)
-# print(x_train[:64].T.shape) # (784, 64)
 
 # Softmax
 def softmax(x):
@@ -120,6 +132,39 @@ def backward(probs, x, y, z1, a1, parameters, batch_size=64):
     
     return grads
 
-y_hat, cost = x_entropy(scores, y_train[:64])
-#print(y_hat.shape)
-grads = backward(y_hat, x_train[:64], y_train[:64], z1, a1, parameters)
+# Accuracy
+
+def accuracy(x_data, y_data, parameters, mb_size=64):
+    correct = 0
+    total = 0
+    for i, (x, y) in enumerate(create_minibatches(mb_size, x_data, y_data)):
+        scores2, z1, a1 = scores(x.T, parameters, relu)
+        y_hat, cost = x_entropy(scores2, y, batch_size=len(x))
+
+        correct += np.sum(np.argmax(y_hat, axis=0) == y.squeeze())
+        total += y_hat.shape[1]
+
+    return correct / total
+
+def train(x_data, y_data, epochs, parameters, mb_size=64, learning_rate= 1e-3):
+    cost_history = []
+    accuracy_history = []
+    for epoch in range(epochs):
+        for i, (x, y) in enumerate(create_minibatches(mb_size, x_data, y_data)):
+            scores2, z1, a1 = scores(x.T, parameters=parameters, activation_fnc=relu)
+            y_hat, cost = x_entropy(scores2, y, batch_size=len(x))
+            grads = backward(y_hat, x, y, z1, a1, parameters, batch_size=len(x))
+
+            parameters["W1"] =  parameters["W1"]- learning_rate * grads["W1"]
+            parameters["b1"] =  parameters["b1"]- learning_rate * grads["b1"]
+            parameters["W2"] =  parameters["W2"]- learning_rate * grads["W2"]
+            parameters["b2"] =  parameters["b2"]- learning_rate * grads["b2"]
+        
+        acc = accuracy(x_val, y_val, parameters, mb_size)
+        print(f"epoch #{epoch}, Cost: {cost:.4f} | Accuracy: {acc:.2%}")
+        cost_history.append(cost)
+        accuracy_history.append(acc)
+
+    return parameters, cost_history, accuracy_history
+
+
